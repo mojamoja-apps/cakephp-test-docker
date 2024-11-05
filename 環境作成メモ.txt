@@ -1,0 +1,42 @@
+2024/06 大塚
+param_base.php
+
+// Docker環境 mailcatcherで動かす際はtrueとして、メールのエンコードを調整する
+if (!defined('MAILCATCHER')) {
+	define('MAILCATCHER', false);
+}
+
+mailcatcher使用時はtrueに設定しないとメール送信エラーになる
+
+
+2024/09/25 Wed 大塚
+image: postgres:16.4 メモ
+
+初回の docker-compose up -d で、
+
+$ docker-compose up -d
+ Container engineer-shukatu.jp-mailcatcher-container  Running
+ Container engineer-shukatu.jp-db-container  Recreate
+ Container engineer-shukatu.jp-db-container  Recreated
+ Container engineer-shukatu.jp-web-container  Recreate
+ Container engineer-shukatu.jp-web-container  Recreated
+ Container engineer-shukatu.jp-db-container  Starting
+Error response from daemon: failed to create task for container: failed to create shim task: OCI runtime create failed: runc create failed: unable to start container process: error during container init: error mounting "/run/desktop/mnt/host/wsl/docker-desktop-bind-mounts/Ubuntu/7686dde01a3215ea5b68929100ef8021ac1c2cf3d06d175aed7ab89f3d205427" to rootfs at "/var/lib/postgresql/data": mount /run/desktop/mnt/host/wsl/docker-desktop-bind-mounts/Ubuntu/7686dde01a3215ea5b68929100ef8021ac1c2cf3d06d175aed7ab89f3d205427:/var/lib/postgresql/data (via /proc/self/fd/6), flags: 0x5000: no such file or directory: unknown
+
+
+このようにエラーになってしまう。
+/var/lib/postgresql/data がdbコンテナに無い為？
+
+一旦 docker-compose.ymlの
+
+    volumes:
+      - ./db/data:/var/lib/postgresql/data
+
+のマウントに関する2行をコメントアウトして、
+Dockerデスクトップ上から一旦コンテナ達を削除、
+docker-compose build
+docker-compose up -d
+としてあげると一旦コンテナは起動される。
+すると /var/lib/postgresql/data ディレクトリが作成されるのか、
+コメントアウト部分を元に戻してbuild、upとしても起動するようになる
+
